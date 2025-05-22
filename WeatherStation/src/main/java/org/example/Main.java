@@ -14,15 +14,16 @@ public class Main {
     public static void main(String[] args) {
         WeatherStationMock weatherStation = new WeatherStationMock();
         final String bootstrapServers = "localhost:9092";
-        final String topic = "weather_status";
+        final String topic = "weather-status";
 
-        try (KafkaWeatherProducer producer = new KafkaWeatherProducer(bootstrapServers, topic)) {
+//        try (KafkaWeatherProducer producer = new KafkaWeatherProducer(bootstrapServers, topic)) {
             while (true) {
                 Optional<WeatherStatusMessage> message = weatherStation.generateMessage();
                 if (message.isEmpty()) {
                     logger.info("[DROPPED] Message dropped by simulation.");
                 } else {
-                    producer.sendMessage(message.get());
+                    System.out.println(message);
+//                    producer.sendMessage(message.get());
                 }
 
                 try {
@@ -32,8 +33,8 @@ public class Main {
                     break;
                 }
             }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "[ERROR] Kafka producer failed: " + e.getMessage(), e);
-        }
+//        } catch (Exception e) {
+//            logger.log(Level.SEVERE, "[ERROR] Kafka producer failed: " + e.getMessage(), e);
+//        }
     }
 }
