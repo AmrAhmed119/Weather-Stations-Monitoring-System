@@ -1,7 +1,7 @@
+package com.Bitcask.Interface;
+
 import java.io.IOException;
 import java.nio.file.Path;
-import com.Bitcask.Interface.BitcaskImpl;
-
 
 public class BitcaskReader {
     private final BitcaskImpl sharedBitcask;

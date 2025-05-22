@@ -1,7 +1,7 @@
+package com.Bitcask.Interface;
+
 import java.io.IOException;
 import java.nio.file.Path;
-
-import com.Bitcask.Interface.Bitcask;
 
 public class BitcaskWriter {
     private static BitcaskWriter instance = null;
