@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.example</groupId>
+    <artifactId>weather-monitoring</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+  <groupId>com.centralstation</groupId>
+  <artifactId>Central-station</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>Central-station</name>
+  <url>http://maven.apache.org</url>
+
+  <build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version>
+            <configuration>
+                <source>21</source>
+                <target>21</target>
+            </configuration>
+        </plugin>
+    </plugins>
+  </build>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- // add dependency of bitcask -->
+    <dependency>
+      <groupId>com.Bitcask</groupId>
+      <artifactId>Bitcask</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+  </dependencies>
+</project>
