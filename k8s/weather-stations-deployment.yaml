@@ -15,10 +15,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "10"
+              value: "1"
 
 ---
 
@@ -39,10 +39,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "20"  
+              value: "2"  
 
 ---
 
@@ -63,10 +63,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "30"  
+              value: "3"  
 
 ---
 
@@ -87,10 +87,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "40"  
+              value: "4"  
 
 ---
 
@@ -111,10 +111,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "50"  
+              value: "5"  
 
 ---
 
@@ -135,10 +135,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "60"  
+              value: "6"  
 
 ---
 
@@ -159,10 +159,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "70"  
+              value: "7"  
 
 ---
 
@@ -183,10 +183,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "80"  
+              value: "8"  
 
 ---
 
@@ -207,10 +207,10 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "90"  
+              value: "9"  
 
 ---
 
@@ -231,7 +231,7 @@ spec:
       containers:
         - name: weather-station
           image: weather-station:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           env:
             - name: STATION_ID
-              value: "100"  
+              value: "10"  
