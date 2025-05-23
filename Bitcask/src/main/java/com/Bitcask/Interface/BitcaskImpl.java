@@ -5,14 +5,14 @@ import java.nio.ByteBuffer;
 import java.nio.file.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BitcaskImpl implements Bitcask {
     private static BitcaskImpl instance = null;
-    private final Map<String, String> keydir = new ConcurrentHashMap<>();
+    private Map<String, String> keydir = new ConcurrentHashMap<>();
+    public static int FileSize = 100;
     private final Path directoryPath;
     private final FileChannel activeFile;
     private FileLock lock;
@@ -114,5 +114,9 @@ public class BitcaskImpl implements Bitcask {
     public void merge() throws IOException {
         // Implement file compaction logic - simplified version
         System.out.println("Merge operation not yet implemented");
+    }
+
+    public static Integer getNumOfSegments(){
+        return 5;
     }
 }
