@@ -12,7 +12,7 @@ public interface Bitcask {
      * @param value the value
      * @throws IOException if write fails
      */
-    void put(String key, String value) throws IOException;
+    void put(int key, KeyDirValuePointer value) throws IOException;
 
     /**
      * Retrieves a value by key.
@@ -20,19 +20,19 @@ public interface Bitcask {
      * @return the value, or null if not found
      * @throws IOException if read fails
      */
-    String get(String key) throws IOException;
+    KeyDirValuePointer get(Integer key) throws IOException;
 
     /**
      * Returns all keys in the store.
      * @return a set of keys
      */
-    Set<String> listKeys();
+    Set<Integer> listKeys();
 
     /**
      * Returns all key-value pairs in the store.
      * @return a map of key-value pairs
      */
-    Map<String, String> getAll();
+    Map<Integer, KeyDirValuePointer> getAll();
 
     /**
      * Closes the store and releases resources.

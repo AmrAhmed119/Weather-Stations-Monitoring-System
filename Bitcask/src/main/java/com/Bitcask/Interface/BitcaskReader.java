@@ -7,10 +7,10 @@ public class BitcaskReader {
     private final BitcaskImpl sharedBitcask;
 
     public BitcaskReader(Path path) throws IOException {
-        this.sharedBitcask = BitcaskImpl.getInstance(path, false);
+        this.sharedBitcask = BitcaskImpl.getInstance(false);
     }
 
-    public String get(String key) throws IOException {
+    public KeyDirValuePointer get(Integer key) throws IOException {
         return sharedBitcask.get(key);
     }
 }
