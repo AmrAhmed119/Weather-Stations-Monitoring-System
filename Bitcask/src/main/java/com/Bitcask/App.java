@@ -1,6 +1,7 @@
 package com.Bitcask;
 
 import com.Bitcask.Interface.BitcaskWriter;
+import com.Bitcask.Interface.KeyDirValuePointer;
 import com.Bitcask.Interface.BitcaskReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,16 +14,31 @@ public class App {
         try {
             // Create a path for the Bitcask storage
             Path storagePath = Paths.get("bitcask-storage");
+            // Ensure the storage directory exists
+            if (!storagePath.toFile().exists()) {
+                storagePath.toFile().mkdirs();
+            }
             
             // Initialize writer and write some data
             BitcaskWriter writer = BitcaskWriter.getInstance(storagePath);
-            writer.put("test-key", "test-value");
-            System.out.println("Written key-value: test-key -> test-value");
+            // Use only 10 unique keys and perform multiple put operations
+            for (int i = 0; i < 10; i++) {
+                
+                for (int j = 0; j < 5; j++) { // 5 updates per key
+                    writer.put(i, "test-value-" + i + "-" + j);
+                }
+            }
             
             // Initialize reader and read data
             BitcaskReader reader = new BitcaskReader(storagePath);
-            String value = reader.get("test-key");
-            System.out.println("Read value for test-key: " + value);
+            KeyDirValuePointer value = reader.get(1);
+            System.out.println(value.getFileId());
+            System.out.println(value.getValueSize());
+            System.out.println(value.getValuePosition());
+            System.out.println(value.getTimestamp());
+            
+            writer.close();
+            writer = null;
             
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
@@ -36,3 +52,20 @@ public class App {
  * 3. background workers: compaction and merging files. 
  * 4. loading key-dir
  */
+
+// we have 4 types of files (critical sections): 
+/**
+ * active (only writer access it), 
+ * old, merged (may be accessed by writer and reader)
+ * keydir (reader and writer access it)
+
+// older files are immutable but could be deleted -> readers from clients and background workers
+// keydir 
+// serialization and deserialization is delayed.
+/**
+ * active file -> append then update keydir
+ * reader -> 
+ */
+
+
+ // how arous deals with active and non active files. if file-id not in files, access it using active.data.
