@@ -7,7 +7,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +30,7 @@ public class KafkaWeatherConsumer implements AutoCloseable {
         properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         this.consumer = new KafkaConsumer<>(properties);
         this.topic = topic;
-        this.consumer.subscribe(Collections.singletonList(topic));
+        this.consumer.subscribe(Collections.singleton(topic));
     }
 
     public List<WeatherStatusMessage> pollMessages() {
