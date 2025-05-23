@@ -9,7 +9,7 @@ public class WeatherStationMock {
     private Long serialNumber = 1L;
 
     public WeatherStationMock() {
-        this.stationId = 1L + (Math.abs(random.nextLong()) % Long.MAX_VALUE); 
+        this.stationId = Long.parseLong(System.getenv("STATION_ID"));
     }
 
     private String getRandomBatteryStatus() {

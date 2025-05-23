@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class KafkaWeatherProducer implements AutoCloseable{
+public class KafkaWeatherProducer implements AutoCloseable {
     private static final Logger logger = Logger.getLogger(KafkaWeatherProducer.class.getName());
     private final KafkaProducer<String, String> producer;
     private final String topic;
@@ -30,7 +30,7 @@ public class KafkaWeatherProducer implements AutoCloseable{
         try {
             String json = objectMapper.writeValueAsString(message);
             ProducerRecord<String, String> record = new ProducerRecord<>(topic, json);
-            producer.send(record);
+            producer.send(record); 
             logger.info("[SENT] Message sent to Kafka: " + json);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "[ERROR] Failed to send message: " + e.getMessage(), e);

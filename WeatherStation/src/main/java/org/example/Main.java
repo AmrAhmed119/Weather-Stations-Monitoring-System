@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.messaging.KafkaConfig;
 import org.example.messaging.KafkaWeatherProducer;
 import org.example.station.WeatherStationMock;
 import org.example.station.WeatherStatusMessage;
@@ -13,28 +14,28 @@ public class Main {
 
     public static void main(String[] args) {
         WeatherStationMock weatherStation = new WeatherStationMock();
-        final String bootstrapServers = "localhost:9092";
-        final String topic = "weather-status";
 
-//        try (KafkaWeatherProducer producer = new KafkaWeatherProducer(bootstrapServers, topic)) {
+        try (KafkaWeatherProducer producer = new KafkaWeatherProducer(
+                KafkaConfig.BOOTSTRAP_SERVERS_PROD.getValue(),
+                KafkaConfig.WEATHER_TOPIC.getValue())
+        ) {
             while (true) {
                 Optional<WeatherStatusMessage> message = weatherStation.generateMessage();
                 if (message.isEmpty()) {
                     logger.info("[DROPPED] Message dropped by simulation.");
                 } else {
-                    System.out.println(message);
-//                    producer.sendMessage(message.get());
+                    producer.sendMessage(message.get());
                 }
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     logger.info("[INTERRUPTED] Exiting gracefully...");
                     break;
                 }
             }
-//        } catch (Exception e) {
-//            logger.log(Level.SEVERE, "[ERROR] Kafka producer failed: " + e.getMessage(), e);
-//        }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "[ERROR] Kafka producer failed: " + e.getMessage(), e);
+        }
     }
 }
