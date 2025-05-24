@@ -49,10 +49,30 @@ public class KafkaReader {
                     break;
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error in KafkaReader: " + e.getMessage());
-            e.printStackTrace();
         }
+
+        // try (KafkaWeatherConsumer consumer = new KafkaWeatherConsumer(
+        //     KafkaConfig.BOOTSTRAP_SERVERS_PROD.getValue(),
+        //     KafkaConfig.CONSUMER_GROUP_ID.getValue(),
+        //     KafkaConfig.WEATHER_TOPIC.getValue())
+        // ) {
+        //     while (true) {
+        //         List<WeatherStatusMessage> messages = consumer.pollMessages();
+        //         for (WeatherStatusMessage message : messages) {
+        //             // Process each message
+        //             writer.put((int) message.stationId(), message.toString());
+        //         }
+
+        //         try {
+        //             Thread.sleep(5000);
+        //         } catch (InterruptedException e) {
+        //             break;
+        //         }
+        //     }
+        // } catch (Exception e) {
+        //     System.err.println("Error in KafkaReader: " + e.getMessage());
+        //     e.printStackTrace();
+        // }
 
     }
     

@@ -55,12 +55,18 @@ public class BitcaskWriter extends BitcaskReader {
 
         // update keydir
         KeyDirValuePointer pointer = new KeyDirValuePointer(
-            createNewOlderFileName(), 
+            nameNewOlderFile(), 
             valueSize, 
             PositionOfStartWritingValue,
             currentTime
         );
         bitcask.put(key, pointer);
+
+        // TODO: check if number of older files exceeds the limit
+        // if (getNumOfSegments() > MERGE_THRESHOLD) {
+        //     new Thread(() -> new Merger(baseDir).mergeProcess()).start();
+        // }
+
     }
 
     public synchronized void printCurrentKeyDir() throws IOException {
@@ -74,11 +80,11 @@ public class BitcaskWriter extends BitcaskReader {
 
 
     private void initialize() throws Exception {
-        // 1. Rebuild the keydir (load from disk, or scan segment files)
-        loadKeydirFromExistedFiles();
-        
-        // 2. Update activeFileSequenceNumber in BitcaskWriter
+        // 1. Update activeFileSequenceNumber in BitcaskWriter
         activeFileSequenceNumber = getActiveFileSequenceNumber();
+
+        // 2. Rebuild the keydir (load from disk, or scan segment files)
+        loadKeydirFromExistedFiles();        
     }
 
     private void loadKeydirFromExistedFiles() throws Exception {
@@ -95,7 +101,7 @@ public class BitcaskWriter extends BitcaskReader {
         
 
 
-    private String createNewOlderFileName() {
+    public String nameNewOlderFile() {
         return "older_" + String.valueOf(activeFileSequenceNumber) + ".data";    
     }
 
@@ -132,7 +138,7 @@ public class BitcaskWriter extends BitcaskReader {
             raf.close();
 
             // Rename current active file
-            Path renamedFile = folderPath.resolve(createNewOlderFileName());
+            Path renamedFile = folderPath.resolve(nameNewOlderFile());
             Files.move(activePath, renamedFile, StandardCopyOption.REPLACE_EXISTING);
 
             // Create new active file
@@ -157,13 +163,13 @@ public class BitcaskWriter extends BitcaskReader {
      */
     private int getActiveFileSequenceNumber() {
         File[] files = folderPath.toFile().listFiles(
-            (dir, name) -> name.matches("\\d+\\.data")
+            (dir, name) -> name.matches("older_\\d+\\.data")
         );
         int maxIndex = 0;
         if (files != null) {
             for (File file : files) {
                 String fileName = file.getName();
-                int idx = Integer.parseInt(fileName.substring(0, fileName.indexOf('.')));
+                int idx = Integer.parseInt(fileName.substring("older_".length(), fileName.indexOf('.')));
                 if (idx > maxIndex) {
                     maxIndex = idx;
                 }

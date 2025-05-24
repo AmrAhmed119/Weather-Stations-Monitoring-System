@@ -67,6 +67,7 @@ public class PointerMapBuilder {
         processOneUnmergedFile(latestRecords, activeFile);
     }
 
+
     private void processOneUnmergedFile(Map<Integer, KeyDirValuePointer> latestRecords, String unmergedFile) throws IOException {
         Path filePath = Paths.get(baseDir, unmergedFile);
         if (Files.exists(filePath)) {
@@ -81,7 +82,7 @@ public class PointerMapBuilder {
                 if (!latestRecords.containsKey(key) ||
                     record.getTimestamp() > latestRecords.get(key).getTimestamp()) {
                     KeyDirValuePointer pointer = new KeyDirValuePointer(
-                        unmergedFile,
+                        bitcaskWriter.nameNewOlderFile(),
                         record.getValueSize(),
                         valuePosition,
                         record.getTimestamp()
