@@ -78,6 +78,7 @@ public class App {
 // old and merged files may be smaller.
 // raf for active file is not the best.
 // delete getAll operation from BitcaskWriter, it is not needed -> use get(key) instead in central station client view all.
+// loading is wrong with apply incrmental updates and use --view-all
 
 // threads: 
 // 1. writer thread
