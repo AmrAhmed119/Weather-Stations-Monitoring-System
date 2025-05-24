@@ -16,3 +16,11 @@ spec:
         - name: central-station
           image: central-station:latest
           imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: parquet-volume
+              mountPath: /app/parquet/
+      volumes:
+        - name: parquet-volume
+          hostPath:
+            path: /home/amr/parquet-data
+            type: DirectoryOrCreate
