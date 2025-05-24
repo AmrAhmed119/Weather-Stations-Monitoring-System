@@ -22,5 +22,5 @@ spec:
       volumes:
         - name: parquet-volume
           hostPath:
-            path: /home/amr/parquet-data
+            path: /tmp/data/parquet
             type: DirectoryOrCreate
