@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.Bitcask.Model.KeyDirValuePointer;
+
 /**
  * it's simply a map of key-value pairs operating on it by multiple users.
  */

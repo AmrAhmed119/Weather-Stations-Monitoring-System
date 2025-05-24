@@ -9,9 +9,9 @@ import java.util.Map;
 
 import com.Bitcask.FileSystem.OlderFileHandler;
 import com.Bitcask.Interface.BitcaskWriter;
-import com.Bitcask.Interface.KeyDirValuePointer;
 import com.Bitcask.Model.FileRecord;
 import com.Bitcask.Model.HintRecord;
+import com.Bitcask.Model.KeyDirValuePointer;
 
 public class PointerMapBuilder {
     private final OlderFileHandler olderFileHandler;

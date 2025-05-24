@@ -2,6 +2,7 @@ package com.Bitcask.Interface;
 
 import com.Bitcask.Model.FileRecord;
 import com.Bitcask.Model.HintRecord;
+import com.Bitcask.Model.KeyDirValuePointer;
 import com.Bitcask.FileSystem.OlderFileHandler;
 import com.Bitcask.Interface.MapBuilders.ValueMapBuilder;
 

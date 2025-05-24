@@ -12,6 +12,7 @@ import java.util.Map;
 import com.Bitcask.FileSystem.OlderFileHandler;
 import com.Bitcask.Interface.MapBuilders.PointerMapBuilder;
 import com.Bitcask.Model.FileRecord;
+import com.Bitcask.Model.KeyDirValuePointer;
 
 // there is a problem regarding getting the instance of BitcaskKeyDir. I need the writer 
 // only to be able to write to the active file.
@@ -102,7 +103,7 @@ public class BitcaskWriter extends BitcaskReader {
     public void printCurrentKeyDir() throws IOException {
         System.out.println("Current Key Directory:");
         for (Integer key : bitcask.listKeys()) {
-            String value = this.get(key, folderPath);
+            String value = this.get(key);
             System.out.println("Key: " + key + ", Value: " + value);
         }
     }

@@ -29,7 +29,7 @@ public class AppTest extends TestCase {
     private void assertLatestValues(BitcaskReader reader, Path storagePath, int numKeys, int lastUpdateIndex) throws Exception {
         for (int i = 0; i < numKeys; i++) {
             String expected = "test-value-" + i + "-" + lastUpdateIndex;
-            String actual = reader.get(i, storagePath);
+            String actual = reader.get(i);
             assertEquals(expected, actual);
         }
     }
@@ -40,7 +40,7 @@ public class AppTest extends TestCase {
         writeTestData(writer, 5, 5);
 
         BitcaskReader reader = new BitcaskReader(storagePath);
-        assertEquals("test-value-1-4", reader.get(1, storagePath));
+        assertEquals("test-value-1-4", reader.get(1));
         assertLatestValues(reader, storagePath, 5, 4);
     }
 

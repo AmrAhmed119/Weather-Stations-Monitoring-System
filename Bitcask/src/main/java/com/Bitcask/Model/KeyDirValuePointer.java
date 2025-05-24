@@ -1,6 +1,4 @@
-package com.Bitcask.Interface;
-
-import com.Bitcask.Model.HintRecord;
+package com.Bitcask.Model;
 
 public class KeyDirValuePointer {
     private String fileId;
