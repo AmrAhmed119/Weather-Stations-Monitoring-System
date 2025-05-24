@@ -2,7 +2,10 @@ package com.Bitcask;
 
 import com.Bitcask.Interface.BitcaskWriter;
 import com.Bitcask.Interface.KeyDirValuePointer;
+import com.Bitcask.Interface.Merger;
 import com.Bitcask.Interface.BitcaskReader;
+
+import java.io.RandomAccessFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -12,8 +15,8 @@ import java.nio.file.Paths;
 public class App {
     public static void main(String[] args) {
         try {
-            // Create a path for the Bitcask storage
-            Path storagePath = Paths.get("bitcask-storage");
+            // // Create a path for the Bitcask storage
+            Path storagePath = Paths.get(Utils.BITCASK_STORAGE_FOLDER.toString());
             // Ensure the storage directory exists
             if (!storagePath.toFile().exists()) {
                 storagePath.toFile().mkdirs();
@@ -22,8 +25,7 @@ public class App {
             // Initialize writer and write some data
             BitcaskWriter writer = BitcaskWriter.getInstance(storagePath);
             // Use only 10 unique keys and perform multiple put operations
-            for (int i = 0; i < 10; i++) {
-                
+            for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) { // 5 updates per key
                     writer.put(i, "test-value-" + i + "-" + j);
                 }
@@ -31,21 +33,23 @@ public class App {
             
             // Initialize reader and read data
             BitcaskReader reader = new BitcaskReader(storagePath);
-            KeyDirValuePointer value = reader.get(1);
-            System.out.println(value.getFileId());
-            System.out.println(value.getValueSize());
-            System.out.println(value.getValuePosition());
-            System.out.println(value.getTimestamp());
-            
-            writer.close();
-            writer = null;
-            
+            String value = reader.get(1, storagePath);
+            System.out.println("Read value: " + value);
+
+            // writer.close();
+            writer.printCurrentKeyDir(reader);
+            // Perform a merge operation
+            Merger merger = new Merger(storagePath.toString());
+            merger.mergeProcess();
+            writer.printCurrentKeyDir(reader);
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
         }
+
     }
 }
+
 /**
  * 1. Writing data using BitcaskWriter (appending, threshold -> old file -> new active file, update keydir) handling sync-on-put
  * 2. Threads: one thread for writing, multple for reading (client is shell script running end-points)
@@ -66,6 +70,10 @@ public class App {
  * active file -> append then update keydir
  * reader -> 
  */
-
-
- // how arous deals with active and non active files. if file-id not in files, access it using active.data.
+// what is baseDir
+// what happens when we rewrite on concurrent hashmap using merger by writer object
+// locks on keydir and old reader file to be atomic operation
+// getMergeinstance in bitcaskimpl
+// old and merged files may be smaller.
+// how arous deals with active and non active files. if file-id not in files, access it using active.data
+// reader get function paramter

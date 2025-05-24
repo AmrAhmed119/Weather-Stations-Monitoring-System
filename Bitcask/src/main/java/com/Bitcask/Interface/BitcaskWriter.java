@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import com.Bitcask.Model.FileRecord;
+
 // there is a problem regarding getting the instance of BitcaskKeyDir. I need the writer 
 // only to be able to write to the active file.
 public class BitcaskWriter extends BitcaskReader {
@@ -61,38 +63,44 @@ public class BitcaskWriter extends BitcaskReader {
         RandomAccessFile raf = prepareActiveFile(keySize, valueSize);
 
         // append
-        long PositionOfStartWritingValue = writeRecord(raf, key, value);
+        long currentTime = System.currentTimeMillis();
+        long PositionOfStartWritingValue = writeRecord(raf, key, value, currentTime);
         raf.getChannel().force(true); // force write to disk
         raf.close();
 
         // update keydir
         KeyDirValuePointer pointer = new KeyDirValuePointer(
-            String.valueOf(activeFileSequenceNumber) + ".data", 
+            createNewOlderFileName(), 
             valueSize, 
             PositionOfStartWritingValue,
-            System.currentTimeMillis() 
+            currentTime
         );
         bitcask.put(key, pointer);
     }
 
 
-    private long writeRecord(RandomAccessFile raf, Integer key, String value) throws IOException {
-        // write timestamp
-        long timestamp = System.currentTimeMillis();
-        raf.writeLong(timestamp);
+    private String createNewOlderFileName() {
+        return "older_" + String.valueOf(activeFileSequenceNumber) + ".data";    
+    }
 
-        // write key 
-        raf.writeInt(key);
+    private long writeRecord(RandomAccessFile raf, Integer key, String value, Long currentTime) throws IOException {
+        FileRecord record = new FileRecord(currentTime, value.getBytes().length, key, value);
+        byte[] serializedRecord = record.serialize();
 
         // get the position bytes to be accessed when reading the value given that file has older records
-        long currentPosition = raf.getFilePointer();
+        long currentPosition = raf.getFilePointer() + bytesToStoreTimestampIn + bytesToStoreKeySizeIn + bytesToStoreValueSizeIn;
 
-        // write value
-        byte[] valueBytes = value.getBytes();
-        raf.writeInt(valueBytes.length);
-        raf.write(valueBytes);
+        raf.write(serializedRecord);
 
         return currentPosition;
+    }
+
+    public void printCurrentKeyDir(BitcaskReader reader) throws IOException {
+        System.out.println("Current Key Directory:");
+        for (Integer key : bitcask.listKeys()) {
+            String value = reader.get(key, folderPath);
+            System.out.println("Key: " + key + ", Value: " + value);
+        }
     }
 
     private RandomAccessFile prepareActiveFile(int keySize, int valueSize) throws Exception {
@@ -115,7 +123,7 @@ public class BitcaskWriter extends BitcaskReader {
             raf.close();
 
             // Rename current active file
-            Path renamedFile = folderPath.resolve(activeFileSequenceNumber + ".data");
+            Path renamedFile = folderPath.resolve(createNewOlderFileName());
             Files.move(activePath, renamedFile, StandardCopyOption.REPLACE_EXISTING);
 
             // Create new active file
