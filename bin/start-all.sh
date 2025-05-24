@@ -21,7 +21,7 @@ docker build -t weather-station:latest ./WeatherStation
 
 # Build ParqueConverter image
 echo "➡️ Building ParqueConverter image..."
-docker build -t parque-to-elastic:latest ./ParqueConverter
+docker build -t parque-to-elastic:latest ./ParquetConverter
 
 echo "📦 Applying Kubernetes manifests..."
 
