@@ -57,7 +57,7 @@ public class KafkaReader {
                 List<WeatherStatusMessage> messages = consumer.pollMessages();
                 for (WeatherStatusMessage message : messages) {
                     // Process each message
-                    writer.put(message.getStationId(), message.toString());
+                    writer.put((int) message.stationId(), message.toString());
                 }
 
                 try {
