@@ -28,26 +28,6 @@ public class KafkaReader {
     }
 
     public static void readFromKafka() {
-        // each 5 seconds, increment a value and update key = 1 using writer
-        // int value = 0;
-        // while (true) {
-        //     value++;
-        //     String valStr = Integer.toString(value);
-        //     try {
-        //         writer.put(1, valStr);
-        //         System.out.println(writer.get(1));
-        //         System.out.println("Updated key=1 with value: " + valStr);
-        //     } catch (Exception e) {
-        //         System.err.println("Failed to write to Bitcask: " + e.getMessage());
-        //     }
-        //     try {
-        //         Thread.sleep(5000);
-        //     } catch (InterruptedException e) {
-        //         Thread.currentThread().interrupt();
-        //     break;
-        //     }
-        // }
-
         try (KafkaWeatherConsumer consumer = new KafkaWeatherConsumer(
             KafkaConfig.BOOTSTRAP_SERVERS_PROD.getValue(),
             KafkaConfig.CONSUMER_GROUP_ID.getValue(),
@@ -56,8 +36,11 @@ public class KafkaReader {
             while (true) {
                 List<WeatherStatusMessage> messages = consumer.pollMessages();
                 for (WeatherStatusMessage message : messages) {
-                    // Process each message
+                    // BitcaskWriter is used to write the message to the storage
                     writer.put((int) message.stationId(), message.toString());
+                    System.out.println("Received message:  " + writer.get((int) message.stationId()) + "\n");
+
+                    //TODO: ParquetManager is used to convert the message to Parquet format
                 }
 
                 try {
@@ -71,6 +54,28 @@ public class KafkaReader {
             e.printStackTrace();
         }
 
+    }
+    
+    public void debug() {
+        // each 5 seconds, increment a value and update key = 1 using writer
+        int value = 0;
+        while (true) {
+            value++;
+            String valStr = Integer.toString(value);
+            try {
+                writer.put(1, valStr);
+                System.out.println(writer.get(1));
+                System.out.println("Updated key=1 with value: " + valStr);
+            } catch (Exception e) {
+                System.err.println("Failed to write to Bitcask: " + e.getMessage());
+            }
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            break;
+            }
+        }
     }
 
 }

@@ -13,7 +13,7 @@ echo "🐳 Building Docker images within Minikube's Docker environment..."
 
 # Build CentralStation image
 echo "➡️ Building CentralStation image..."
-docker build -t central-station:latest ./CentralStation
+docker build -t central-station:latest .
 
 # Build WeatherStation image
 echo "➡️ Building WeatherStation image..."

@@ -31,7 +31,7 @@
           <configuration>
               <archive>
                   <manifest>
-                      <mainClass>org.example.Main</mainClass>
+                      <mainClass>com.centralstation.CentralStation</mainClass>
                   </manifest>
               </archive>
               <descriptorRefs>
