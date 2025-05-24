@@ -41,6 +41,15 @@ class BitcaskImpl implements Bitcask {
     }
 
     @Override
+    public void bulkLoad(Map<Integer, KeyDirValuePointer> newKeyDir) {
+        for (Map.Entry<Integer, KeyDirValuePointer> entry : newKeyDir.entrySet()) {
+            Integer key = entry.getKey();
+            KeyDirValuePointer value = entry.getValue();
+            keydir.put(key, value);
+        }
+    }
+
+    @Override
     public KeyDirValuePointer get(Integer key) throws IOException {
         return keydir.get(key);
     }

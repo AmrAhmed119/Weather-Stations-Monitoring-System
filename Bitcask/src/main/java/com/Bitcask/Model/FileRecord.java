@@ -56,10 +56,15 @@ public class FileRecord implements Serializable {
         List<FileRecord> records = new ArrayList<>();
         ByteBuffer buffer = ByteBuffer.wrap(data);
         
-        while (buffer.hasRemaining()) {
+        while (buffer.remaining() >= 8 + 4 + 4) {
+            int startPos = buffer.position();
             long timestamp = buffer.getLong();
             int valueSize = buffer.getInt();
             int key = buffer.getInt();
+            if (buffer.remaining() < valueSize) {
+                buffer.position(startPos);
+                break;
+            }
             byte[] valueBytes = new byte[valueSize];
             buffer.get(valueBytes);
             records.add(new FileRecord(timestamp, valueSize, key, new String(valueBytes)));
@@ -99,5 +104,29 @@ public class FileRecord implements Serializable {
     // Get total size of serialized record
     public int getTotalSize() {
         return 8 + 4 + 4 + value.getBytes().length;
+    }
+
+    public static long[] getValuePositions(byte[] fileData) {
+        List<Long> positions = new ArrayList<>();
+        ByteBuffer buffer = ByteBuffer.wrap(fileData);
+
+        final int HEADER_SIZE = 8 + 4 + 4; // timestamp + valueSize + key
+
+        while (buffer.remaining() >= HEADER_SIZE) {
+            long position = buffer.position();
+            buffer.getLong(); // Skip timestamp
+            int valueSize = buffer.getInt(); // Read value size
+            buffer.getInt(); // Skip key
+
+            // Check if enough bytes remain for the value
+            if (buffer.remaining() < valueSize) {
+                break; // Incomplete record, stop processing
+
+            }
+            positions.add((long) buffer.position());
+            buffer.position(buffer.position() + valueSize);
+        }
+
+        return positions.stream().mapToLong(Long::longValue).toArray();
     }
 } 

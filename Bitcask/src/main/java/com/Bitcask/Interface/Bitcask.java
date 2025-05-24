@@ -15,6 +15,12 @@ public interface Bitcask {
     void put(int key, KeyDirValuePointer value) throws IOException;
 
     /**
+     * Bulk loads a map of key-value pairs into the store.
+     * @param newKeyDir the map of key-value pairs
+     */
+    void bulkLoad(Map<Integer, KeyDirValuePointer> newKeyDir) throws IOException;
+
+    /**
      * Retrieves a value by key.
      * @param key the key
      * @return the value, or null if not found

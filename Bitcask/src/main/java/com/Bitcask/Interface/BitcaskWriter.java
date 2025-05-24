@@ -7,7 +7,10 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 
+import com.Bitcask.FileSystem.OlderFileHandler;
+import com.Bitcask.Interface.MapBuilders.PointerMapBuilder;
 import com.Bitcask.Model.FileRecord;
 
 // there is a problem regarding getting the instance of BitcaskKeyDir. I need the writer 
@@ -28,7 +31,7 @@ public class BitcaskWriter extends BitcaskReader {
     private Path folderPath;
     private int activeFileSequenceNumber = 0;
 
-    public static synchronized BitcaskWriter getInstance(Path path) throws IOException {
+    public static synchronized BitcaskWriter getInstance(Path path) throws Exception {
         if (instance == null) {
             BitcaskImpl bitcask = BitcaskImpl.getInstance(true);
             instance = new BitcaskWriter(path, bitcask);
@@ -37,17 +40,18 @@ public class BitcaskWriter extends BitcaskReader {
         return instance;
     }
 
-    private void initialize() throws IOException {
+    private void initialize() throws Exception {
         // 1. Rebuild the keydir (load from disk, or scan segment files)
-        loadKeydirFromExistedFiles(folderPath);
+        loadKeydirFromExistedFiles();
         
         // 2. Update activeFileSequenceNumber in BitcaskWriter
         activeFileSequenceNumber = getActiveFileSequenceNumber();
     }
 
-    private void loadKeydirFromExistedFiles(Path folderPath2) {
-        // // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method 'loadKeydirFromExistedFiles'");
+    private void loadKeydirFromExistedFiles() throws Exception {
+        PointerMapBuilder pmb = new PointerMapBuilder(new OlderFileHandler(folderPath.toString()), folderPath.toString());
+        Map<Integer, KeyDirValuePointer> newKeyDir = pmb.build();
+        bitcask.bulkLoad(newKeyDir);
     }
 
     private BitcaskWriter(Path folderPath, BitcaskImpl bitcaskObj) throws IOException {
@@ -95,10 +99,10 @@ public class BitcaskWriter extends BitcaskReader {
         return currentPosition;
     }
 
-    public void printCurrentKeyDir(BitcaskReader reader) throws IOException {
+    public void printCurrentKeyDir() throws IOException {
         System.out.println("Current Key Directory:");
         for (Integer key : bitcask.listKeys()) {
-            String value = reader.get(key, folderPath);
+            String value = this.get(key, folderPath);
             System.out.println("Key: " + key + ", Value: " + value);
         }
     }

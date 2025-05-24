@@ -3,6 +3,8 @@ package com.Bitcask.Interface;
 import com.Bitcask.Model.FileRecord;
 import com.Bitcask.Model.HintRecord;
 import com.Bitcask.FileSystem.OlderFileHandler;
+import com.Bitcask.Interface.MapBuilders.ValueMapBuilder;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,56 +26,9 @@ public class Merger {
         if (BitcaskImpl.getNumOfSegments() > 1) {
             String[] olderfiles = olderFileHandler.getOlderFiles();
             String[] oldMergedfiles = olderFileHandler.getMergedFiles();
-            Map<Integer, FileRecord> mergedDir = this.getMergedDir();
+            Map<Integer, FileRecord> mergedDir = new ValueMapBuilder(olderFileHandler, baseDir).build();
             Set<String> newkeyDir = this.writeMergedFiles(mergedDir);
             this.UpdateKeyDirAndCleanOlderfiles(newkeyDir, olderfiles, oldMergedfiles);
-        }
-    }
-
-    private Map<Integer, FileRecord> getMergedDir()  {
-        Map<Integer, FileRecord> latestRecords = new HashMap<>();
-        try {
-            // First process merged files (they have hint files)
-            String[] mergedFiles = olderFileHandler.getMergedFiles();
-            for (String mergedFile : mergedFiles) {
-                String hintFileName = mergedFile.replace(".data", ".hint");
-                Path hintFilePath = Paths.get(baseDir, hintFileName);
-                if (Files.exists(hintFilePath)) {
-                    byte[] hintData = Files.readAllBytes(hintFilePath);
-                    HintRecord[] hintRecords = HintRecord.deserializeHintRecords(hintData);
-                    for (HintRecord hint : hintRecords) {
-                        int key = hint.getKey();
-                        String value = olderFileHandler.readValueFromPosition(mergedFile, 
-                                                         hint.getValuePosition(), 
-                                                         hint.getValueSize());
-                        FileRecord record = new FileRecord(hint.getTimestamp(), 
-                                                           hint.getValueSize(), 
-                                                           key, value);
-                        latestRecords.put(key, record);
-                        
-                    }
-                }
-            }
-            // Then process older files
-            String[] olderFiles = olderFileHandler.getOlderFiles();
-            for (String olderFile : olderFiles) {
-                Path filePath = Paths.get(baseDir, olderFile);
-                if (Files.exists(filePath)) {
-                    byte[] fileData = Files.readAllBytes(filePath);
-                    FileRecord[] records = FileRecord.deserializeFileRecords(fileData);
-                    for (FileRecord record : records) {
-                        int key = record.getKey();
-                        if (!latestRecords.containsKey(key) || 
-                            record.getTimestamp() > latestRecords.get(key).getTimestamp()) {
-                            latestRecords.put(key, record);
-                        }
-                    }
-                }
-            }
-
-            return latestRecords;
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to merge directory", e);
         }
     }
 
@@ -130,25 +85,26 @@ public class Merger {
             BitcaskImpl bitcaskImpl = BitcaskImpl.getMergerInstance();
             // Update keydir in BitcaskImpl
             for (String fileName : hintFileNames) {
+                
                 // First read the hint file to get the value size
                 String hintFileName = fileName.replace(".data", ".hint");
                 Path hintFilePath = Paths.get(baseDir, hintFileName);
-                if (Files.exists(hintFilePath)) {
-                    byte[] hintData = Files.readAllBytes(hintFilePath);
-                    HintRecord[] hintRecords = HintRecord.deserializeHintRecords(hintData);
-                    // Find the hint record for this key
-                    for (HintRecord hint : hintRecords) {
-                        Long TimeStampInKeyDir = bitcaskImpl.get(hint.getKey()).getTimestamp();
-                        if (hint.getTimestamp() == TimeStampInKeyDir) {
-                            // Now read the actual record using the position and size from hint
-                            // FileRecord record = olderFileHandler.readRecordFromPosition(fileName, hint.getValuePosition(), hint.getValueSize());
-                            KeyDirValuePointer pointer = KeyDirValuePointer.createFromHintRecord(hint, fileName);
+                if (!Files.exists(hintFilePath)) continue;
+                byte[] hintData = Files.readAllBytes(hintFilePath);
+                HintRecord[] hintRecords = HintRecord.deserializeHintRecords(hintData);
+                
+                // Find the hint record for this key
+                for (HintRecord hint : hintRecords) {
+                    Long TimeStampInKeyDir = bitcaskImpl.get(hint.getKey()).getTimestamp();
+                    if (hint.getTimestamp() != TimeStampInKeyDir) continue;
+                    // Now read the actual record using the position and size from hint
+                    // FileRecord record = olderFileHandler.readRecordFromPosition(fileName, hint.getValuePosition(), hint.getValueSize());
+                    KeyDirValuePointer pointer = KeyDirValuePointer.createFromHintRecord(hint, fileName);
 
-                            // Update keydir with the new value
-                            bitcaskImpl.put(hint.getKey(), pointer);
-                        }
-                    }
+                    // Update keydir with the new value
+                    bitcaskImpl.put(hint.getKey(), pointer);
                 }
+            
             }
 
             // Clean up old files
