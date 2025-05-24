@@ -41,27 +41,7 @@ public class BitcaskWriter extends BitcaskReader {
         return instance;
     }
 
-    private void initialize() throws Exception {
-        // 1. Rebuild the keydir (load from disk, or scan segment files)
-        loadKeydirFromExistedFiles();
-        
-        // 2. Update activeFileSequenceNumber in BitcaskWriter
-        activeFileSequenceNumber = getActiveFileSequenceNumber();
-    }
-
-    private void loadKeydirFromExistedFiles() throws Exception {
-        PointerMapBuilder pmb = new PointerMapBuilder(new OlderFileHandler(folderPath.toString()), folderPath.toString());
-        Map<Integer, KeyDirValuePointer> newKeyDir = pmb.build();
-        bitcask.bulkLoad(newKeyDir);
-    }
-
-    private BitcaskWriter(Path folderPath, BitcaskImpl bitcaskObj) throws IOException {
-        super(folderPath); // TODO
-        this.bitcask = bitcaskObj;
-        this.folderPath = folderPath;
-    }
-
-    public void put(Integer key, String value) throws Exception {
+    public synchronized void put(Integer key, String value) throws Exception {
         // prepare the file
         int keySize = Integer.BYTES;
         int valueSize = value.getBytes().length;
@@ -83,6 +63,37 @@ public class BitcaskWriter extends BitcaskReader {
         bitcask.put(key, pointer);
     }
 
+    public synchronized void printCurrentKeyDir() throws IOException {
+        System.out.println("Current Key Directory:");
+        for (Integer key : bitcask.listKeys()) {
+            String value = this.get(key);
+            System.out.println("Key: " + key + ", Value: " + value);
+        }
+    }
+
+
+
+    private void initialize() throws Exception {
+        // 1. Rebuild the keydir (load from disk, or scan segment files)
+        loadKeydirFromExistedFiles();
+        
+        // 2. Update activeFileSequenceNumber in BitcaskWriter
+        activeFileSequenceNumber = getActiveFileSequenceNumber();
+    }
+
+    private void loadKeydirFromExistedFiles() throws Exception {
+        PointerMapBuilder pmb = new PointerMapBuilder(new OlderFileHandler(folderPath.toString()), folderPath.toString());
+        Map<Integer, KeyDirValuePointer> newKeyDir = pmb.build();
+        bitcask.bulkLoad(newKeyDir);
+    }
+
+    private BitcaskWriter(Path folderPath, BitcaskImpl bitcaskObj) throws IOException {
+        super(folderPath); // TODO
+        this.bitcask = bitcaskObj;
+        this.folderPath = folderPath;
+    }
+        
+
 
     private String createNewOlderFileName() {
         return "older_" + String.valueOf(activeFileSequenceNumber) + ".data";    
@@ -100,13 +111,6 @@ public class BitcaskWriter extends BitcaskReader {
         return currentPosition;
     }
 
-    public void printCurrentKeyDir() throws IOException {
-        System.out.println("Current Key Directory:");
-        for (Integer key : bitcask.listKeys()) {
-            String value = this.get(key);
-            System.out.println("Key: " + key + ", Value: " + value);
-        }
-    }
 
     private RandomAccessFile prepareActiveFile(int keySize, int valueSize) throws Exception {
         // make the path hold file path

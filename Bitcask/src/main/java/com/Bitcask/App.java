@@ -76,6 +76,8 @@ public class App {
 // locks on keydir and old reader file to be atomic operation. same when renaming the active file.
 // getMergeinstance in bitcaskimpl
 // old and merged files may be smaller.
+// raf for active file is not the best.
+// delete getAll operation from BitcaskWriter, it is not needed -> use get(key) instead in central station client view all.
 
 // threads: 
 // 1. writer thread
