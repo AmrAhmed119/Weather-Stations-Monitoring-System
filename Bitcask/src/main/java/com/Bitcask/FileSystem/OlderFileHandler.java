@@ -45,54 +45,28 @@ public class OlderFileHandler {
         }
     }
 
-    private void processFileWithHints(String olderFile, Map<String, Long> keyPositions, 
-                                    File mergedFile, Map<String, Long> newKeyPositions, 
-                                    long currentPosition) throws IOException {
-        try (RandomAccessFile raf = new RandomAccessFile(new File(baseDir, olderFile), "r");
-             FileOutputStream fos = new FileOutputStream(mergedFile, true)) {
-            
-            byte[] buffer = new byte[BUFFER_SIZE];
-            for (Map.Entry<String, Long> entry : keyPositions.entrySet()) {
-                raf.seek(entry.getValue());
-                int bytesRead;
-                while ((bytesRead = raf.read(buffer)) != -1) {
-                    fos.write(buffer, 0, bytesRead);
-                    currentPosition += bytesRead;
-                }
-                newKeyPositions.put(entry.getKey(), currentPosition);
-            }
-        }
-    }
-
-    private void processFileWithoutHints(String olderFile, File mergedFile, 
-                                       Map<String, Long> newKeyPositions, 
-                                       long currentPosition) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(new File(baseDir, olderFile)));
-             FileOutputStream fos = new FileOutputStream(mergedFile, true)) {
-            
-            String line;
-            while ((line = reader.readLine()) != null) {
-                byte[] data = line.getBytes();
-                fos.write(data);
-                fos.write('\n');
-                currentPosition += data.length + 1;
-                // Assuming the first part of the line is the key
-                String key = line.split(",")[0];
-                newKeyPositions.put(key, currentPosition);
-            }
-        }
-    }
-
-    private void cleanupOldFiles(List<String> olderFiles) {
+    
+    public void cleanupOldFiles(List<String> olderFiles) {
         for (String file : olderFiles) {
             try {
                 Files.deleteIfExists(Paths.get(baseDir, file));
-                Files.deleteIfExists(Paths.get(baseDir, file.replace(".data", ".hint")));
             } catch (IOException e) {
                 throw new RuntimeException("Failed to delete old file: " + file, e);
             }
         }
     }
+
+    public void cleanupMergedFiles(List<String> mergedFiles) {
+    for (String file : mergedFiles) {
+        try {
+            Files.deleteIfExists(Paths.get(baseDir, file));
+            Files.deleteIfExists(Paths.get(baseDir, file.replace(".data", ".hint")));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete old file: " + file, e);
+        }
+    }
+}
+
 
     public String[] getOlderFiles() {
         try {

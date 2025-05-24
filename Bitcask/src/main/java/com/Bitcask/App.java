@@ -3,6 +3,8 @@ package com.Bitcask;
 import com.Bitcask.Interface.BitcaskWriter;
 import com.Bitcask.Interface.KeyDirValuePointer;
 import com.Bitcask.Interface.BitcaskReader;
+
+import java.io.RandomAccessFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -23,7 +25,6 @@ public class App {
             BitcaskWriter writer = BitcaskWriter.getInstance(storagePath);
             // Use only 10 unique keys and perform multiple put operations
             for (int i = 0; i < 10; i++) {
-                
                 for (int j = 0; j < 5; j++) { // 5 updates per key
                     writer.put(i, "test-value-" + i + "-" + j);
                 }
@@ -36,6 +37,15 @@ public class App {
             System.out.println(value.getValueSize());
             System.out.println(value.getValuePosition());
             System.out.println(value.getTimestamp());
+
+            // read the got value using random access file
+            RandomAccessFile randomAccessFile = new RandomAccessFile(storagePath.resolve(value.getFileId()).toFile(), "r");
+            randomAccessFile.seek(value.getValuePosition());
+            byte[] data = new byte[value.getValueSize()];
+            randomAccessFile.read(data);
+            String valueString = new String(data);
+            System.out.println("Value: " + valueString);
+            randomAccessFile.close();
             
             writer.close();
             writer = null;
@@ -46,6 +56,7 @@ public class App {
         }
     }
 }
+
 /**
  * 1. Writing data using BitcaskWriter (appending, threshold -> old file -> new active file, update keydir) handling sync-on-put
  * 2. Threads: one thread for writing, multple for reading (client is shell script running end-points)
@@ -66,6 +77,8 @@ public class App {
  * active file -> append then update keydir
  * reader -> 
  */
-
-
- // how arous deals with active and non active files. if file-id not in files, access it using active.data.
+// what is baseDir
+// what happens when we rewrite on concurrent hashmap using merger by writer object
+// locks on keydir and old reader file to be atomic operation
+// getMergeinstance in bitcaskimpl
+// how arous deals with active and non active files. if file-id not in files, access it using active.data

@@ -1,6 +1,5 @@
-package com.Bitcask.MergeProcess;
+package com.Bitcask.Interface;
 
-import com.Bitcask.Interface.BitcaskImpl;
 import com.Bitcask.Model.FileRecord;
 import com.Bitcask.Model.HintRecord;
 import com.Bitcask.FileSystem.OlderFileHandler;
@@ -23,8 +22,8 @@ public class Merger {
     
     public void MergeProcess() {
         if (BitcaskImpl.getNumOfSegments() > 1) {
-            String[] olderfiles = OlderFileHandler.getOlderFiles();
-            String[] oldMergedfiles = OlderFileHandler.getMergedFiles();
+            String[] olderfiles = olderFileHandler.getOlderFiles();
+            String[] oldMergedfiles = olderFileHandler.getMergedFiles();
             Map<Integer, FileRecord> mergedDir = this.getMergedDir();
             Map<Integer, String> newkeyDir = this.writeMergedFiles(mergedDir);
             this.UpdateKeyDirAndCleanOlderfiles(newkeyDir, olderfiles, oldMergedfiles);
@@ -142,10 +141,12 @@ public class Merger {
                     // Find the hint record for this key
                     for (HintRecord hint : hintRecords) {
                         if (hint.getKey() == key) {
-                            // Now read the actual record using the position and size from hint
-                            FileRecord record = olderFileHandler.readRecordFromPosition(fileName, hint.getValuePosition(), hint.getValueSize());
+                            // // Now read the actual record using the position and size from hint
+                            // FileRecord record = olderFileHandler.readRecordFromPosition(fileName, hint.getValuePosition(), hint.getValueSize());
+                            KeyDirValuePointer pointer = KeyDirValuePointer.createFromHintRecord(hint, fileName);
+
                             // Update keydir with the new value
-                            BitcaskImpl.getInstance(Paths.get(baseDir), true).put(String.valueOf(key), record.getValue());
+                            BitcaskImpl.getMergerInstance().put(key, pointer);
                             break;
                         }
                     }
@@ -153,8 +154,8 @@ public class Merger {
             }
 
             // Clean up old files
-            olderFileHandler.cleanupOlderFiles(Arrays.asList(olderFiles));
-            olderFileHandler.cleanupOldMergedFiles(Arrays.asList(oldMergedFiles));
+            olderFileHandler.cleanupOldFiles(Arrays.asList(olderFiles));
+            olderFileHandler.cleanupMergedFiles(Arrays.asList(oldMergedFiles));
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to update keydir and clean files", e);

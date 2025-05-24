@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import com.Bitcask.Model.FileRecord;
+
 // there is a problem regarding getting the instance of BitcaskKeyDir. I need the writer 
 // only to be able to write to the active file.
 public class BitcaskWriter extends BitcaskReader {
@@ -77,20 +79,13 @@ public class BitcaskWriter extends BitcaskReader {
 
 
     private long writeRecord(RandomAccessFile raf, Integer key, String value) throws IOException {
-        // write timestamp
-        long timestamp = System.currentTimeMillis();
-        raf.writeLong(timestamp);
-
-        // write key 
-        raf.writeInt(key);
+        FileRecord record = new FileRecord(key, value);
+        byte[] serializedRecord = record.serialize();
 
         // get the position bytes to be accessed when reading the value given that file has older records
-        long currentPosition = raf.getFilePointer();
+        long currentPosition = raf.getFilePointer() + bytesToStoreTimestampIn + bytesToStoreKeySizeIn + bytesToStoreValueSizeIn;
 
-        // write value
-        byte[] valueBytes = value.getBytes();
-        raf.writeInt(valueBytes.length);
-        raf.write(valueBytes);
+        raf.write(serializedRecord);
 
         return currentPosition;
     }

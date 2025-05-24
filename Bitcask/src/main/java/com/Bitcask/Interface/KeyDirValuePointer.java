@@ -1,5 +1,7 @@
 package com.Bitcask.Interface;
 
+import com.Bitcask.Model.HintRecord;
+
 public class KeyDirValuePointer {
     private String fileId;
     private int valueSize;
@@ -27,6 +29,15 @@ public class KeyDirValuePointer {
 
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public static KeyDirValuePointer createFromHintRecord(HintRecord hintRecord, String fileId) {
+        return new KeyDirValuePointer(
+            fileId, 
+            hintRecord.getValueSize(), 
+            hintRecord.getValuePosition(), 
+            hintRecord.getTimestamp()
+        );
     }
 
 }

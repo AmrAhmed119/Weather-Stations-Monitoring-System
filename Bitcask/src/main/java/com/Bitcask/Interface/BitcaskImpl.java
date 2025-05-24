@@ -14,11 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 
-public class BitcaskImpl implements Bitcask {
+class BitcaskImpl implements Bitcask {
     public static int FileSize = 100;
-    private final Path directoryPath;
-    private final FileChannel activeFile;
-    private FileLock lock;
     private static BitcaskImpl bitcaskObj = null;
     private final Map<Integer, KeyDirValuePointer> keydir = new ConcurrentHashMap<>();
     
@@ -31,6 +28,10 @@ public class BitcaskImpl implements Bitcask {
         } else if (isWriter) {
             throw new IllegalStateException("Bitcask already opened; cannot open again for writing.");
         }
+        return bitcaskObj;
+    }
+
+    public static BitcaskImpl getMergerInstance() throws IOException {
         return bitcaskObj;
     }
 
