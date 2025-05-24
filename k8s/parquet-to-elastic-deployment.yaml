@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parquet-to-elastic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: parquet-to-elastic
+  template:
+    metadata:
+      labels:
+        app: parquet-to-elastic
+    spec:
+      containers:
+        - name: parquet-to-elastic
+          image: parquet-to-elastic:latest  # You need to build and push this image
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: parquet-volume
+              mountPath: /app/parquet/   # The Python script should read from here
+      volumes:
+        - name: parquet-volume
+          hostPath:
+            path: /tmp/data/parquet
+            type: DirectoryOrCreate

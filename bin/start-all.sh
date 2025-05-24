@@ -19,6 +19,10 @@ docker build -t central-station:latest ./CentralStation
 echo "➡️ Building WeatherStation image..."
 docker build -t weather-station:latest ./WeatherStation
 
+# Build ParqueConverter image
+echo "➡️ Building ParqueConverter image..."
+docker build -t parque-to-elastic:latest ./ParqueConverter
+
 echo "📦 Applying Kubernetes manifests..."
 
 # Apply all YAML files in the k8s directory

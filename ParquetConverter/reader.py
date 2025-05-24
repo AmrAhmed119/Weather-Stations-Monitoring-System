@@ -2,10 +2,12 @@ import os
 import pandas as pd
 import json
 import time
+import requests
 
 # === CONFIGURATION ===
 BASE_DIR = "/app/parquet/"
 INDEX_NAME = "weather"
+ES_URL = f"http://elasticsearch:9200/{INDEX_NAME}/_bulk"  # <== Elasticsearch service DNS
 
 def process_parquet_file(filepath):
     try:
@@ -19,32 +21,29 @@ def process_parquet_file(filepath):
         # Convert to NDJSON format
         ndjson_lines = []
         for _, row in df.iterrows():
-            meta = {"index": {"_index": INDEX_NAME}}
+            meta = {"index": {}}
             doc = row.to_dict()
             ndjson_lines.append(json.dumps(meta))
             ndjson_lines.append(json.dumps(doc))
         
         ndjson_payload = "\n".join(ndjson_lines) + "\n"
-        
-        # === Replace actual sending with print ===
-        print(f"[{filepath}] NDJSON payload:\n{ndjson_payload}")
 
-        # === Commented out Elasticsearch logic ===
-        # response = requests.post(
-        #     ES_URL,
-        #     headers={"Content-Type": "application/x-ndjson"},
-        #     data=ndjson_payload.encode('utf-8')
-        # )
-        #
-        # if response.status_code == 200:
-        #     result = response.json()
-        #     if result.get("errors"):
-        #         print(f"[{filepath}] Some documents failed to index.")
-        #     else:
-        #         print(f"[{filepath}] All documents indexed successfully.")
-        # else:
-        #     print(f"[{filepath}] Failed to index. Status code: {response.status_code}")
-        #     print(response.text)
+        # Send to Elasticsearch
+        response = requests.post(
+            ES_URL,
+            headers={"Content-Type": "application/x-ndjson"},
+            data=ndjson_payload.encode('utf-8')
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            if result.get("errors"):
+                print(f"[{filepath}] Some documents failed to index.")
+            else:
+                print(f"[{filepath}] All documents indexed successfully.")
+        else:
+            print(f"[{filepath}] Failed to index. Status code: {response.status_code}")
+            print(response.text)
 
     except Exception as e:
         print(f"Error processing {filepath}: {e}")
