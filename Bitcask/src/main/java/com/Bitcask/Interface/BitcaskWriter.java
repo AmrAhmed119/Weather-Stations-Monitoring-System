@@ -63,23 +63,28 @@ public class BitcaskWriter extends BitcaskReader {
         RandomAccessFile raf = prepareActiveFile(keySize, valueSize);
 
         // append
-        long PositionOfStartWritingValue = writeRecord(raf, key, value);
+        long currentTime = System.currentTimeMillis();
+        long PositionOfStartWritingValue = writeRecord(raf, key, value, currentTime);
         raf.getChannel().force(true); // force write to disk
         raf.close();
 
         // update keydir
         KeyDirValuePointer pointer = new KeyDirValuePointer(
-            String.valueOf(activeFileSequenceNumber) + ".data", 
+            createNewOlderFileName(), 
             valueSize, 
             PositionOfStartWritingValue,
-            System.currentTimeMillis() 
+            currentTime
         );
         bitcask.put(key, pointer);
     }
 
 
-    private long writeRecord(RandomAccessFile raf, Integer key, String value) throws IOException {
-        FileRecord record = new FileRecord(key, value);
+    private String createNewOlderFileName() {
+        return "older_" + String.valueOf(activeFileSequenceNumber) + ".data";    
+    }
+
+    private long writeRecord(RandomAccessFile raf, Integer key, String value, Long currentTime) throws IOException {
+        FileRecord record = new FileRecord(currentTime, value.getBytes().length, key, value);
         byte[] serializedRecord = record.serialize();
 
         // get the position bytes to be accessed when reading the value given that file has older records
@@ -88,6 +93,14 @@ public class BitcaskWriter extends BitcaskReader {
         raf.write(serializedRecord);
 
         return currentPosition;
+    }
+
+    public void printCurrentKeyDir(BitcaskReader reader) throws IOException {
+        System.out.println("Current Key Directory:");
+        for (Integer key : bitcask.listKeys()) {
+            String value = reader.get(key, folderPath);
+            System.out.println("Key: " + key + ", Value: " + value);
+        }
     }
 
     private RandomAccessFile prepareActiveFile(int keySize, int valueSize) throws Exception {
@@ -110,7 +123,7 @@ public class BitcaskWriter extends BitcaskReader {
             raf.close();
 
             // Rename current active file
-            Path renamedFile = folderPath.resolve(activeFileSequenceNumber + ".data");
+            Path renamedFile = folderPath.resolve(createNewOlderFileName());
             Files.move(activePath, renamedFile, StandardCopyOption.REPLACE_EXISTING);
 
             // Create new active file

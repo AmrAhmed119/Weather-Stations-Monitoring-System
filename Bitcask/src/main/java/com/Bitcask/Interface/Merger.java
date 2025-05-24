@@ -20,14 +20,13 @@ public class Merger {
         this.olderFileHandler = new OlderFileHandler(baseDir);
     }
     
-    public void MergeProcess() {
+    public void mergeProcess() {
         if (BitcaskImpl.getNumOfSegments() > 1) {
             String[] olderfiles = olderFileHandler.getOlderFiles();
             String[] oldMergedfiles = olderFileHandler.getMergedFiles();
             Map<Integer, FileRecord> mergedDir = this.getMergedDir();
-            Map<Integer, String> newkeyDir = this.writeMergedFiles(mergedDir);
+            Set<String> newkeyDir = this.writeMergedFiles(mergedDir);
             this.UpdateKeyDirAndCleanOlderfiles(newkeyDir, olderfiles, oldMergedfiles);
-            
         }
     }
 
@@ -44,10 +43,12 @@ public class Merger {
                     HintRecord[] hintRecords = HintRecord.deserializeHintRecords(hintData);
                     for (HintRecord hint : hintRecords) {
                         int key = hint.getKey();
-                        FileRecord record 
-                            = olderFileHandler.readRecordFromPosition(mergedFile, 
+                        String value = olderFileHandler.readValueFromPosition(mergedFile, 
                                                          hint.getValuePosition(), 
                                                          hint.getValueSize());
+                        FileRecord record = new FileRecord(hint.getTimestamp(), 
+                                                           hint.getValueSize(), 
+                                                           key, value);
                         latestRecords.put(key, record);
                         
                     }
@@ -76,8 +77,8 @@ public class Merger {
         }
     }
 
-    private Map<Integer, String> writeMergedFiles(Map<Integer, FileRecord> mergedDir) {
-        Map<Integer, String> keyToFileMap = new HashMap<>();
+    private Set<String> writeMergedFiles(Map<Integer, FileRecord> mergedDir) {
+        Set<String> hintFileNames = new HashSet<>();
         try {
             List<FileRecord> currentBatch = new ArrayList<>();
             int currentBatchSize = 0;
@@ -90,6 +91,8 @@ public class Merger {
             for (Map.Entry<Integer, FileRecord> entry : sortedEntries) {
                 FileRecord record = entry.getValue();
                 int recordSize = record.getTotalSize();
+                int key = record.getKey();
+                String value = record.getValue();
                 
                 // If adding this record would exceed the limit, write current batch and start new one
                 if (currentBatchSize + recordSize > BitcaskImpl.FileSize) {
@@ -97,9 +100,7 @@ public class Merger {
                         FileRecord[] batchArray = currentBatch.toArray(new FileRecord[0]);
                         currentFileName = olderFileHandler.createOlderFile(batchArray, true);
                         // Map all keys in the current batch to this file
-                        for (FileRecord r : currentBatch) {
-                            keyToFileMap.put(r.getKey(), currentFileName);
-                        }
+                        hintFileNames.add(currentFileName);
                         currentBatch.clear();
                         currentBatchSize = 0;
                     }
@@ -115,23 +116,20 @@ public class Merger {
                 FileRecord[] batchArray = currentBatch.toArray(new FileRecord[0]);
                 currentFileName = olderFileHandler.createOlderFile(batchArray, true);
                 // Map all keys in the final batch to this file
-                for (FileRecord r : currentBatch) {
-                    keyToFileMap.put(r.getKey(), currentFileName);
-                }
+                hintFileNames.add(currentFileName);
             }
             
-            return keyToFileMap;
+            return hintFileNames;
         } catch (IOException e) {
             throw new RuntimeException("Failed to write merged files", e);
         }
     }
 
-    private void UpdateKeyDirAndCleanOlderfiles(Map<Integer, String> newKeyDir, String[] olderFiles, String[] oldMergedFiles) {
+    private void UpdateKeyDirAndCleanOlderfiles(Set<String> hintFileNames, String[] olderFiles, String[] oldMergedFiles) {
         try {
+            BitcaskImpl bitcaskImpl = BitcaskImpl.getMergerInstance();
             // Update keydir in BitcaskImpl
-            for (Map.Entry<Integer, String> entry : newKeyDir.entrySet()) {
-                int key = entry.getKey();
-                String fileName = entry.getValue();
+            for (String fileName : hintFileNames) {
                 // First read the hint file to get the value size
                 String hintFileName = fileName.replace(".data", ".hint");
                 Path hintFilePath = Paths.get(baseDir, hintFileName);
@@ -140,14 +138,14 @@ public class Merger {
                     HintRecord[] hintRecords = HintRecord.deserializeHintRecords(hintData);
                     // Find the hint record for this key
                     for (HintRecord hint : hintRecords) {
-                        if (hint.getKey() == key) {
-                            // // Now read the actual record using the position and size from hint
+                        Long TimeStampInKeyDir = bitcaskImpl.get(hint.getKey()).getTimestamp();
+                        if (hint.getTimestamp() == TimeStampInKeyDir) {
+                            // Now read the actual record using the position and size from hint
                             // FileRecord record = olderFileHandler.readRecordFromPosition(fileName, hint.getValuePosition(), hint.getValueSize());
                             KeyDirValuePointer pointer = KeyDirValuePointer.createFromHintRecord(hint, fileName);
 
                             // Update keydir with the new value
-                            BitcaskImpl.getMergerInstance().put(key, pointer);
-                            break;
+                            bitcaskImpl.put(hint.getKey(), pointer);
                         }
                     }
                 }

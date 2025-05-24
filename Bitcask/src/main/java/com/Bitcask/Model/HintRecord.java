@@ -93,7 +93,7 @@ public class HintRecord implements Serializable {
             HintRecord hintRecord = new HintRecord(
                 record.getTimestamp(),
                 record.getValueSize(),
-                currentPosition,
+                currentPosition + 8 + 4 + 4,
                 record.getKey()
             );
             hintRecords.add(hintRecord);

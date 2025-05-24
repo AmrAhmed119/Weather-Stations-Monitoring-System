@@ -40,4 +40,13 @@ public class KeyDirValuePointer {
         );
     }
 
+    public String toString() {
+        return "KeyDirValuePointer{" +
+                "fileId='" + fileId + '\'' +
+                ", valueSize=" + valueSize +
+                ", valuePosition=" + valuePosition +
+                ", timestamp=" + timestamp +
+                '}';
+    }
+
 }

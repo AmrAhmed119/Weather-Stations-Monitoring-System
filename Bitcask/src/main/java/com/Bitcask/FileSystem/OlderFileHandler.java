@@ -34,14 +34,12 @@ public class OlderFileHandler {
         return fileName;
     }
 
-    public FileRecord readRecordFromPosition(String fileName, long position, int valueSize) throws IOException {
+    public String readValueFromPosition(String fileName, long position, int valueSize) throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(new File(baseDir, fileName), "r")) {
             raf.seek(position);
-            long timestamp = raf.readLong();
-            int key = raf.readInt();
             byte[] valueBytes = new byte[valueSize];
             raf.read(valueBytes);
-            return new FileRecord(timestamp, valueSize, key, new String(valueBytes));
+            return new String(valueBytes);
         }
     }
 
