@@ -30,7 +30,7 @@ public class Main {
             .filter((key, value) -> {
                 try {
                     WeatherStatusMessage status = mapper.readValue(value, WeatherStatusMessage.class);
-                    return status.weather.humidity > 70;
+                    return status.humidity() > 70;
                 } catch (Exception e) {
                     logger.info("Failed to parse message: " + value + e);
                     return false;
@@ -40,7 +40,7 @@ public class Main {
                 try {
                     WeatherStatusMessage status = mapper.readValue(value, WeatherStatusMessage.class);
                     String result = String.format("Rain detected at station %d with humidity %d%%", 
-                        status.station_id, status.weather.humidity);
+                        status.stationId(), status.humidity());
                     logger.info("Sending message: " + result);
                     return result;
                 } catch (Exception e) {
