@@ -81,6 +81,8 @@ public class App {
 // loading is wrong with apply incrmental updates and use --view-all
 // convert Integer Key to Long
 // remove function get active seq num.
+// optimize getting the number of active segments in BitcaskWriter to avoid unnecessary file operations.
+
 // threads: 
 // 1. writer thread
 

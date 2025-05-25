@@ -43,7 +43,7 @@ public class OlderFileHandler {
         }
     }
 
-    
+
     public void cleanupOldFiles(List<String> olderFiles) {
         for (String file : olderFiles) {
             try {
@@ -69,10 +69,7 @@ public class OlderFileHandler {
     public String[] getOlderFiles() {
         try {
             // Collect all matching files first
-            List<Path> olderFiles = Files.list(Paths.get(baseDir))
-                .filter(path -> path.toString().endsWith(".data"))
-                .filter(path -> path.getFileName().toString().startsWith("older_"))
-                .collect(Collectors.toList());
+            List<Path> olderFiles = getActiveAndOlderFiles();
     
             // Find the file with the largest sequence number
             Path maxSeqFile = olderFiles.stream()
@@ -89,9 +86,16 @@ public class OlderFileHandler {
             throw new RuntimeException("Failed to list older files", e);
         }
     }
+
+    public List<Path> getActiveAndOlderFiles() throws IOException {
+        return Files.list(Paths.get(baseDir))
+            .filter(path -> path.toString().endsWith(".data"))
+            .filter(path -> path.getFileName().toString().startsWith("older_"))
+            .collect(Collectors.toList());
+    }
     
     // Helper method to extract the sequence number from the file name
-    private static int extractSeqNum(String filename) {
+    public static int extractSeqNum(String filename) {
         try {
             // Assumes format like "older_123.data"
             String numberPart = filename.substring("older_".length(), filename.length() - ".data".length());

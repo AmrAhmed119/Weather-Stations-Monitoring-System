@@ -96,7 +96,7 @@ public class BitcaskWriter extends BitcaskReader {
     }
 
     private void loadKeydirFromExistedFiles() throws Exception {
-        PointerMapBuilder pmb = new PointerMapBuilder(new OlderFileHandler(folderPath.toString()), folderPath.toString());
+        PointerMapBuilder pmb = new PointerMapBuilder(olderFileHandler, folderPath.toString());
         Map<Integer, KeyDirValuePointer> newKeyDir = pmb.build();
         bitcask.bulkLoad(newKeyDir);
     }
@@ -161,22 +161,24 @@ public class BitcaskWriter extends BitcaskReader {
      *
      * @return the next available sequence number for a new data file
      */
-    private int getActiveFileSequenceNumber() {
-        File[] files = folderPath.toFile().listFiles(
-            (dir, name) -> name.matches("older_\\d+\\.data")
-        );
+    private int getActiveFileSequenceNumber() throws IOException {
+
+        File[] files = 
+            olderFileHandler.getActiveAndOlderFiles().stream()
+            .map(Path::toFile)
+            .toArray(File[]::new); 
         int maxIndex = 0;
         if (files != null) {
             for (File file : files) {
                 String fileName = file.getName();
-                int idx = Integer.parseInt(fileName.substring("older_".length(), fileName.indexOf('.')));
+                int idx = OlderFileHandler.extractSeqNum(fileName.toString());
                 if (idx > maxIndex) {
                     maxIndex = idx;
                 }
             }
             if(files.length == 0) return 1;
         }
-        return maxIndex ;
+        return maxIndex;
     }
 
     public void close() {
