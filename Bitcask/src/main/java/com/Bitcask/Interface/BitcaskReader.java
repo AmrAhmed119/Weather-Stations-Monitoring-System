@@ -23,14 +23,19 @@ public class BitcaskReader {
         
         // if value.getFileId() file doesnt exist, search in active.data instead
         Path filePath = storagePath.resolve(value.getFileId());
+        // if (!filePath.toFile().exists()) {
+        //     filePath = storagePath.resolve("active.data");
+        // }
+        BitcaskLocks.acquireReadLock();
         if (!filePath.toFile().exists()) {
-            filePath = storagePath.resolve("active.data");
+            value = sharedBitcask.get(key);
+            filePath = storagePath.resolve(value.getFileId());
         }
-
         RandomAccessFile randomAccessFile = new RandomAccessFile(filePath.toFile(), "r");
         randomAccessFile.seek(value.getValuePosition());
         byte[] data = new byte[value.getValueSize()];
         randomAccessFile.read(data);
+        BitcaskLocks.releaseReadLock();
         String valueString = new String(data);
         randomAccessFile.close();            
         return valueString; 

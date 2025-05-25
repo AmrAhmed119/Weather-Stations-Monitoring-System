@@ -109,8 +109,10 @@ public class Merger {
             }
 
             // Clean up old files
+            BitcaskLocks.acquireWriteLock();
             olderFileHandler.cleanupOldFiles(Arrays.asList(olderFiles));
             olderFileHandler.cleanupMergedFiles(Arrays.asList(oldMergedFiles));
+            BitcaskLocks.releaseWriteLock();
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to update keydir and clean files", e);

@@ -1,14 +1,16 @@
 package com.example;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.Bitcask.Utils;
 import com.Bitcask.Interface.BitcaskWriter;
 import com.Bitcask.Interface.Merger;
 import com.Bitcask.Interface.BitcaskReader;
 
-public class AppTest extends TestCase {
+public class AppTest {
 
     private Path prepareStorage() {
         Path storagePath = Paths.get(Utils.BITCASK_STORAGE_FOLDER.toString());
@@ -26,7 +28,7 @@ public class AppTest extends TestCase {
         }
     }
 
-    private void assertLatestValues(BitcaskReader reader, Path storagePath, int numKeys, int lastUpdateIndex) throws Exception {
+    private void assertLatestValues(BitcaskReader reader, int numKeys, int lastUpdateIndex) throws Exception {
         for (int i = 0; i < numKeys; i++) {
             String expected = "test-value-" + i + "-" + lastUpdateIndex;
             String actual = reader.get(i);
@@ -34,43 +36,30 @@ public class AppTest extends TestCase {
         }
     }
 
-    public void testBitcaskWriteAndRead() throws Exception {
+    @Test
+    public void testBitcaskEndToEndFlow() throws Exception {
         Path storagePath = prepareStorage();
+
+        // Step 1: Write data
         BitcaskWriter writer = BitcaskWriter.getInstance(storagePath);
         writeTestData(writer, 5, 5);
 
-        BitcaskReader reader = new BitcaskReader(storagePath);
-        assertEquals("test-value-1-4", reader.get(1));
-        assertLatestValues(reader, storagePath, 5, 4);
-    }
+        // Step 2: Verify read before merge
+        BitcaskReader readerBeforeMerge = new BitcaskReader(storagePath);
+        assertEquals("test-value-1-4", readerBeforeMerge.get(1));
+        assertLatestValues(readerBeforeMerge, 5, 4);
 
-    public void testBitcaskMerge() throws Exception {
-        Path storagePath = prepareStorage();
-        BitcaskWriter writer = BitcaskWriter.getInstance(storagePath);
-        writeTestData(writer, 5, 5);
-
+        // Step 3: Perform merge
         Merger merger = new Merger(storagePath.toString());
         merger.mergeProcess();
 
-        BitcaskReader reader = new BitcaskReader(storagePath);
-        assertLatestValues(reader, storagePath, 5, 4);
-    }
+        // Step 4: Verify read after merge
+        BitcaskReader readerAfterMerge = new BitcaskReader(storagePath);
+        assertLatestValues(readerAfterMerge, 5, 4);
 
-    /**
-     * Test to ensure that the key directory is loaded correctly after a restart.
-     * IMPORTANT: This Test should started by files in directory whatever it was merged or not.
-     * @throws Exception
-     */
-    public void testKeyDirLoading() throws Exception {
-        Path storagePath = prepareStorage();
-        BitcaskWriter writer = BitcaskWriter.getInstance(storagePath);
-        
-        // Simulate a restart by creating a new reader
-        BitcaskReader reader = new BitcaskReader(storagePath);
-        assertLatestValues(reader, storagePath, 5, 4);
-        
-        // Check if the keydir is loaded correctly
+        // Step 5: Simulate restart and verify keydir loading
+        BitcaskReader readerAfterRestart = new BitcaskReader(storagePath);
+        assertLatestValues(readerAfterRestart, 5, 4);
         writer.printCurrentKeyDir();
     }
-    
 }

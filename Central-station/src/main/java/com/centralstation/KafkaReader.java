@@ -37,9 +37,12 @@ public class KafkaReader {
                 List<WeatherStatusMessage> messages = consumer.pollMessages();
                 for (WeatherStatusMessage message : messages) {
                     // BitcaskWriter is used to write the message to the storage
-                    writer.put((int) message.stationId(), message.toString());
-                    System.out.println("Received message:  " + writer.get((int) message.stationId()) + "\n");
-
+                    try{
+                        writer.put((int) message.stationId(), message.toString());
+                        System.out.println("Received message:  " + writer.get((int) message.stationId()) + "\n");
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
                     //TODO: ParquetManager is used to convert the message to Parquet format
                 }
 
@@ -76,7 +79,7 @@ public class KafkaReader {
 
     }
     
-    public void debug() {
+    public static void debug() {
         // each 5 seconds, increment a value and update key = 1 using writer
         int value = 0;
         while (true) {

@@ -23,14 +23,15 @@ public class BitcaskWriter extends BitcaskReader {
     private final int bytesToStoreKeySizeIn = 4;
     private final int bytesToStoreValueSizeIn = 4;
     private final int segmentFileThreshold = 100; // TODO -> search on values
-
+    private final int MERGE_THRESHOLD = 10;
+    private final OlderFileHandler olderFileHandler;
     // singletons
     private static BitcaskWriter instance = null;
     private final BitcaskImpl bitcask;
     
     // tracking objs
     private Path folderPath;
-    private int activeFileSequenceNumber = 0;
+    private static int activeFileSequenceNumber = 0;
 
     public static synchronized BitcaskWriter getInstance(Path path) throws Exception {
         if (instance == null) {
@@ -45,17 +46,17 @@ public class BitcaskWriter extends BitcaskReader {
         // prepare the file
         int keySize = Integer.BYTES;
         int valueSize = value.getBytes().length;
-        RandomAccessFile raf = prepareActiveFile(keySize, valueSize);
+        String activeFileName = getActiveFileName();
+        RandomAccessFile raf = prepareActiveFile(activeFileName, keySize, valueSize);
 
         // append
         long currentTime = System.currentTimeMillis();
         long PositionOfStartWritingValue = writeRecord(raf, key, value, currentTime);
         raf.getChannel().force(true); // force write to disk
         raf.close();
-
         // update keydir
         KeyDirValuePointer pointer = new KeyDirValuePointer(
-            nameNewOlderFile(), 
+            getActiveFileName(), 
             valueSize, 
             PositionOfStartWritingValue,
             currentTime
@@ -63,9 +64,9 @@ public class BitcaskWriter extends BitcaskReader {
         bitcask.put(key, pointer);
 
         // TODO: check if number of older files exceeds the limit
-        // if (getNumOfSegments() > MERGE_THRESHOLD) {
-        //     new Thread(() -> new Merger(baseDir).mergeProcess()).start();
-        // }
+        if (getNumOfSegments() >= MERGE_THRESHOLD) {
+            new Thread(() -> new Merger(folderPath.toString()).mergeProcess()).start();
+        }
 
     }
 
@@ -77,6 +78,13 @@ public class BitcaskWriter extends BitcaskReader {
         }
     }
 
+    public int getNumOfSegments(){
+        return olderFileHandler.getOlderFiles().length;
+    }
+
+    public String getActiveFileName(){
+        return "older_" + String.valueOf(activeFileSequenceNumber) + ".data";
+    } 
 
 
     private void initialize() throws Exception {
@@ -97,14 +105,9 @@ public class BitcaskWriter extends BitcaskReader {
         super(folderPath); // TODO
         this.bitcask = bitcaskObj;
         this.folderPath = folderPath;
+        olderFileHandler = new OlderFileHandler(folderPath.toString());
     }
         
-
-
-    public String nameNewOlderFile() {
-        return "older_" + String.valueOf(activeFileSequenceNumber) + ".data";    
-    }
-
     private long writeRecord(RandomAccessFile raf, Integer key, String value, Long currentTime) throws IOException {
         FileRecord record = new FileRecord(currentTime, value.getBytes().length, key, value);
         byte[] serializedRecord = record.serialize();
@@ -118,9 +121,9 @@ public class BitcaskWriter extends BitcaskReader {
     }
 
 
-    private RandomAccessFile prepareActiveFile(int keySize, int valueSize) throws Exception {
+    private RandomAccessFile prepareActiveFile(String activeFileName, int keySize, int valueSize) throws Exception {
         // make the path hold file path
-        Path activePath = folderPath.resolve("active.data");
+        Path activePath = folderPath.resolve(activeFileName);
 
         // base case: first file to be created
         if (!activePath.toFile().exists()) activePath.toFile().createNewFile();
@@ -137,14 +140,11 @@ public class BitcaskWriter extends BitcaskReader {
         } else {
             raf.close();
 
-            // Rename current active file
-            Path renamedFile = folderPath.resolve(nameNewOlderFile());
-            Files.move(activePath, renamedFile, StandardCopyOption.REPLACE_EXISTING);
-
             // Create new active file
+            activeFileSequenceNumber++;
+            activePath = folderPath.resolve(getActiveFileName());
             activePath.toFile().createNewFile();
             raf = new RandomAccessFile(activePath.toFile(), "rw");
-            activeFileSequenceNumber++;
             return raf;
         }
     }
@@ -174,8 +174,9 @@ public class BitcaskWriter extends BitcaskReader {
                     maxIndex = idx;
                 }
             }
+            if(files.length == 0) return 1;
         }
-        return maxIndex + 1;
+        return maxIndex ;
     }
 
     public void close() {

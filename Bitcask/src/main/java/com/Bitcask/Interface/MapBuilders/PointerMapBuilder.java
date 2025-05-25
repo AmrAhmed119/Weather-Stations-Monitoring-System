@@ -63,7 +63,7 @@ public class PointerMapBuilder {
         }
 
         // Process the active file separately
-        String activeFile = "active.data";
+        String activeFile = bitcaskWriter.getActiveFileName();
         processOneUnmergedFile(latestRecords, activeFile);
     }
 
@@ -82,7 +82,7 @@ public class PointerMapBuilder {
                 if (!latestRecords.containsKey(key) ||
                     record.getTimestamp() > latestRecords.get(key).getTimestamp()) {
                     KeyDirValuePointer pointer = new KeyDirValuePointer(
-                        bitcaskWriter.nameNewOlderFile(),
+                        bitcaskWriter.getActiveFileName(),
                         record.getValueSize(),
                         valuePosition,
                         record.getTimestamp()
