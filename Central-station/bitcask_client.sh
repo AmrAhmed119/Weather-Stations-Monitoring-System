@@ -17,6 +17,18 @@ case "$1" in
     echo
     ;;
 
+  --perf)
+    if [[ "$2" =~ --clients=([0-9]+) ]]; then
+      CLIENTS="${BASH_REMATCH[1]}"
+      curl -s "$BASE_URL/perf?key=$CLIENTS"
+      echo
+    else
+      echo "Usage: ./bitcask_client.sh --perf --clients=N"
+      exit 1
+    fi
+    ;;
+
+
   *)
     echo "Usage:"
     echo "  ./bitcask_client.sh --put KEY VALUE"
