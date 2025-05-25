@@ -11,7 +11,7 @@ public class CentralStation {
     
     public static void main(String[] args) throws Exception {
         // ——— Kafka Consumer Thread ———
-        Thread kafkaThread = new Thread(KafkaReader::debug);
+        Thread kafkaThread = new Thread(KafkaReader::readFromKafka);
         kafkaThread.setName("kafka-consumer-thread");
         kafkaThread.start();
 
