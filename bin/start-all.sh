@@ -19,6 +19,10 @@ docker build -t central-station:latest .
 echo "➡️ Building WeatherStation image..."
 docker build -t weather-station:latest ./WeatherStation
 
+# Build WeatherStation image
+echo "➡️ Building Kafka Processor image..."
+docker build -t kafka-processor:latest ./Processor
+
 echo "📦 Applying Kubernetes manifests..."
 
 # Apply all YAML files in the k8s directory
