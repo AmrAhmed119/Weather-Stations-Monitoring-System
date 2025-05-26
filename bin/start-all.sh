@@ -26,7 +26,13 @@ docker build -t parque-to-elastic:latest ./ParquetConverter
 echo "📦 Applying Kubernetes manifests..."
 
 # Apply all YAML files in the k8s directory
-kubectl apply -f ./k8s/
+cd k8s
+
+kubectl apply -f weather-stations-deployment.yaml
+kubectl apply -f central-station-deployment.yaml
+kubectl apply -f kafka-service.yaml
+kubectl apply -f kafka-deployment.yaml
+
 
 echo "✅ Deployment complete."
 

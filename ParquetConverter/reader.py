@@ -7,7 +7,7 @@ import requests
 # === CONFIGURATION ===
 BASE_DIR = "/app/parquet/"
 INDEX_NAME = "weather"
-ES_URL = f"http://elasticsearch:9200/{INDEX_NAME}/_bulk"  # <== Elasticsearch service DNS
+ES_URL = f"http://elasticsearch:9200/{INDEX_NAME}/_bulk"
 
 def process_parquet_file(filepath):
     try:
@@ -38,22 +38,35 @@ def process_parquet_file(filepath):
         if response.status_code == 200:
             result = response.json()
             if result.get("errors"):
-                print(f"[{filepath}] Some documents failed to index.")
+                print(f"[{filepath}] Some documents failed to index. File NOT deleted.")
+                return False
             else:
                 print(f"[{filepath}] All documents indexed successfully.")
+                try:
+                    os.remove(filepath)
+                    print(f"[{filepath}] File deleted successfully.")
+                    return True
+                except OSError as e:
+                    print(f"[{filepath}] Error deleting file: {e}")
+                    return False
         else:
             print(f"[{filepath}] Failed to index. Status code: {response.status_code}")
             print(response.text)
+            return False
 
     except Exception as e:
         print(f"Error processing {filepath}: {e}")
+        return False
 
 def traverse_and_process():
     for root, dirs, files in os.walk(BASE_DIR):
         for file in files:
             if file.endswith(".parquet"):
                 filepath = os.path.join(root, file)
-                process_parquet_file(filepath)
+                success = process_parquet_file(filepath)
+                if not success:
+                    # Optionally move failed files to a different directory
+                    pass
 
 if __name__ == "__main__":
     while True:
