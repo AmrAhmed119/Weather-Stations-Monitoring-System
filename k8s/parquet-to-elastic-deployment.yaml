@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: central-station
+  name: parquet-to-elastic
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: central-station
+      app: parquet-to-elastic
   template:
     metadata:
       labels:
-        app: central-station
+        app: parquet-to-elastic
     spec:
       containers:
-        - name: central-station
-          image: central-station:latest
+        - name: parquet-to-elastic
+          image: parquet-to-elastic:latest  # You need to build and push this image
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: parquet-volume
-              mountPath: /app/parquet/
+              mountPath: /app/parquet/   # The Python script should read from here
       volumes:
         - name: parquet-volume
           hostPath:

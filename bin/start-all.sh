@@ -19,6 +19,10 @@ docker build -t central-station:latest .
 echo "➡️ Building WeatherStation image..."
 docker build -t weather-station:latest ./WeatherStation
 
+# Build ParqueConverter image
+echo "➡️ Building ParqueConverter image..."
+docker build -t parque-to-elastic:latest ./ParquetConverter
+
 # Build WeatherStation image
 echo "➡️ Building Kafka Processor image..."
 docker build -t kafka-processor:latest ./Processor
