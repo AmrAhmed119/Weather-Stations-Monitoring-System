@@ -18,6 +18,8 @@ import com.centralstation.parquet.ParquetManager;
 public class KafkaReader {
     public static final Path STORAGE = Paths.get(Utils.BITCASK_STORAGE_FOLDER_PATH);
     private static final BitcaskWriter writer;
+    private static final FileWriter parquetWriter = new FileWriter(ParquetConfig.OUTPUT_DIRECTORY.getString());
+    private static final ParquetManager parquetManager = new ParquetManager(parquetWriter, ParquetConfig.BATCH_SIZE.getInt());
 
     static {
         try {
@@ -31,10 +33,6 @@ public class KafkaReader {
     }
 
     public static void readFromKafka() {
-        FileWriter parquetWriter = new FileWriter(ParquetConfig.OUTPUT_DIRECTORY.getString());
-        ParquetManager parquetManager = new ParquetManager(parquetWriter, ParquetConfig.BATCH_SIZE.getInt());
-
-
         try (KafkaWeatherConsumer consumer = new KafkaWeatherConsumer(
             KafkaConfig.BOOTSTRAP_SERVERS_PROD.getValue(),
             KafkaConfig.CONSUMER_GROUP_ID.getValue(),

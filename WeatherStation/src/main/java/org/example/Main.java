@@ -28,7 +28,7 @@ public class Main {
                 }
 
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     logger.info("[INTERRUPTED] Exiting gracefully...");
                     break;
