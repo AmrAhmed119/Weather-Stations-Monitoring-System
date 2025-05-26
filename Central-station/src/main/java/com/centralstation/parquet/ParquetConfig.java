@@ -1,4 +1,4 @@
-package org.example.parquet;
+package com.centralstation.parquet;
 
 public enum ParquetConfig {
     BATCH_SIZE(10),

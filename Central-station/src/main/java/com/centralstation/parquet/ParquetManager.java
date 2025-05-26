@@ -1,6 +1,7 @@
-package org.example.parquet;
+package com.centralstation.parquet;
 
-import org.example.messaging.WeatherStatusMessage;
+
+import com.centralstation.messaging.WeatherStatusMessage;
 
 import java.util.ArrayList;
 import java.util.List;

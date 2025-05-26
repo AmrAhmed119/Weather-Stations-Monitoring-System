@@ -11,6 +11,9 @@ import com.Bitcask.Interface.BitcaskWriter;
 import com.centralstation.messaging.KafkaConfig;
 import com.centralstation.messaging.KafkaWeatherConsumer;
 import com.centralstation.messaging.WeatherStatusMessage;
+import com.centralstation.parquet.FileWriter;
+import com.centralstation.parquet.ParquetConfig;
+import com.centralstation.parquet.ParquetManager;
 
 public class KafkaReader {
     public static final Path STORAGE = Paths.get(Utils.BITCASK_STORAGE_FOLDER_PATH);
@@ -28,6 +31,10 @@ public class KafkaReader {
     }
 
     public static void readFromKafka() {
+        FileWriter parquetWriter = new FileWriter(ParquetConfig.OUTPUT_DIRECTORY.getString());
+        ParquetManager parquetManager = new ParquetManager(parquetWriter, ParquetConfig.BATCH_SIZE.getInt());
+
+
         try (KafkaWeatherConsumer consumer = new KafkaWeatherConsumer(
             KafkaConfig.BOOTSTRAP_SERVERS_PROD.getValue(),
             KafkaConfig.CONSUMER_GROUP_ID.getValue(),
@@ -43,7 +50,7 @@ public class KafkaReader {
                     }catch(Exception e){
                         e.printStackTrace();
                     }
-                    //TODO: ParquetManager is used to convert the message to Parquet format
+                    parquetManager.addMessage(message);
                 }
 
                 try {

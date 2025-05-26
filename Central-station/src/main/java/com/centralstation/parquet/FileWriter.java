@@ -1,5 +1,6 @@
-package org.example.parquet;
+package com.centralstation.parquet;
 
+import com.centralstation.messaging.WeatherStatusMessage;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -7,7 +8,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
-import org.example.messaging.WeatherStatusMessage;
 
 import java.io.IOException;
 import java.nio.file.Files;
