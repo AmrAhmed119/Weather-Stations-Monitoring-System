@@ -30,7 +30,11 @@ docker build -t kafka-processor:latest ./Processor
 echo "📦 Applying Kubernetes manifests..."
 
 # Apply all YAML files in the k8s directory
-kubectl apply -f ./k8s/
+kubectl apply -f ./k8s/weather-stations-deployment.yaml
+kubectl apply -f ./k8s/kafka-service.yaml
+kubectl apply -f ./k8s/kafka-deployment.yaml
+kubectl apply -f ./k8s/central-station-deployment.yaml
+kubectl apply -f ./k8s/central-station-service.yaml
 
 echo "✅ Deployment complete."
 

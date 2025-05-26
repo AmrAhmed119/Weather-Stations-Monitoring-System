@@ -37,7 +37,7 @@ public class BitcaskReader {
             randomAccessFile.close();            
             return valueString; 
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
