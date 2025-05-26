@@ -86,6 +86,7 @@ public class KafkaReader {
             value++;
             String valStr = Integer.toString(value);
             try {
+                System.out.println(writer.get(1));;
                 writer.put(1, valStr);
                 System.out.println(writer.get(1));
                 System.out.println("Updated key=1 with value: " + valStr);

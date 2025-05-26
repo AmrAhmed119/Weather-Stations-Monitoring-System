@@ -1,9 +1,7 @@
 package com.centralstation;
 
-import com.Bitcask.Interface.BitcaskWriter;
 import com.sun.net.httpserver.HttpServer;
 import java.net.InetSocketAddress;
-import java.nio.file.*;
 import java.util.concurrent.Executors;
 
 public class CentralStation {
@@ -11,7 +9,7 @@ public class CentralStation {
     
     public static void main(String[] args) throws Exception {
         // ——— Kafka Consumer Thread ———
-        Thread kafkaThread = new Thread(KafkaReader::debug);
+        Thread kafkaThread = new Thread(KafkaReader::readFromKafka);
         kafkaThread.setName("kafka-consumer-thread");
         kafkaThread.start();
 

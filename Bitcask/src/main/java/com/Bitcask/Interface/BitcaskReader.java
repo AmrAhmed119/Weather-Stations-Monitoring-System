@@ -18,27 +18,29 @@ public class BitcaskReader {
         this.storagePath = path;
     }
 
-    public String get(Integer key) throws IOException {
-        KeyDirValuePointer value = sharedBitcask.get(key);
-        
-        // if value.getFileId() file doesnt exist, search in active.data instead
-        Path filePath = storagePath.resolve(value.getFileId());
-        // if (!filePath.toFile().exists()) {
-        //     filePath = storagePath.resolve("active.data");
-        // }
-        BitcaskLocks.acquireReadLock();
-        if (!filePath.toFile().exists()) {
-            value = sharedBitcask.get(key);
-            filePath = storagePath.resolve(value.getFileId());
+    public String get(Integer key) {
+        try {
+            KeyDirValuePointer value = sharedBitcask.get(key);
+
+            Path filePath = storagePath.resolve(value.getFileId());
+            BitcaskLocks.acquireReadLock();
+            if (!filePath.toFile().exists()) {
+                value = sharedBitcask.get(key);
+                filePath = storagePath.resolve(value.getFileId());
+            }
+            RandomAccessFile randomAccessFile = new RandomAccessFile(filePath.toFile(), "r");
+            randomAccessFile.seek(value.getValuePosition());
+            byte[] data = new byte[value.getValueSize()];
+            randomAccessFile.read(data);
+            BitcaskLocks.releaseReadLock();
+            String valueString = new String(data);
+            randomAccessFile.close();            
+            return valueString; 
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
-        RandomAccessFile randomAccessFile = new RandomAccessFile(filePath.toFile(), "r");
-        randomAccessFile.seek(value.getValuePosition());
-        byte[] data = new byte[value.getValueSize()];
-        randomAccessFile.read(data);
-        BitcaskLocks.releaseReadLock();
-        String valueString = new String(data);
-        randomAccessFile.close();            
-        return valueString; 
     }   
 
     public Map<Integer, String> getAll() throws IOException {
@@ -46,11 +48,7 @@ public class BitcaskReader {
             .collect(Collectors.toMap(
                 key -> key,
                 key -> {
-                    try {
-                        return get(key);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Error retrieving value for key: " + key, e);
-                    }
+                    return get(key);
                 }
             ));
     }
